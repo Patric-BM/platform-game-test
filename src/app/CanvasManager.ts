@@ -5,22 +5,25 @@ import { CollisionManager } from "./CollisionManager";
 export class CanvasManager {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  player: Player;
+  player?: Player | null;
   platforms: Platform[];
   collisionManager: CollisionManager;
   imagePlatform: string = "images/platform.png";
+  imagePlayer: string = "images/spriteStandRight.png";
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.platforms = [];
-    this.player = new Player(this.ctx);
+    this.player = null;
     this.collisionManager = new CollisionManager();
   }
 
   public async initialize(): Promise<void> {
     const image1 = await this.loadImage(this.imagePlatform);
     const image2 = await this.loadImage(this.imagePlatform);
+    const image3 = await this.loadImage(this.imagePlayer);
+    this.player = new Player(this.ctx, image3);
     this.platforms = [
       new Platform(this.ctx, image1),
       new Platform(this.ctx, image2, image2.width - 10),
@@ -39,9 +42,9 @@ export class CanvasManager {
   private loop(): void {
     this.draw();
     this.platforms.forEach((platform) => platform.update());
-    this.player.update();
+    this.player?.update();
     this.collisionManager.checkCollisionWithPlatforms(
-      this.player,
+      this.player!,
       this.platforms
     );
     requestAnimationFrame(() => this.loop());
@@ -63,9 +66,11 @@ export class CanvasManager {
     switch (event.key) {
       case "ArrowLeft":
         this.handleArrowLeft();
+        this.player?.flipImage(true);
         break;
       case "ArrowRight":
         this.handleArrowRight();
+        this.player?.flipImage(false);
         break;
       case "ArrowUp":
         this.handleArrowUp();
@@ -75,7 +80,7 @@ export class CanvasManager {
 
   private handleArrowLeft(): void {
     this.setPlayerVelocityX(-5);
-    if (this.player.x <= 100) {
+    if (this.player!.x <= 100) {
       this.setPlayerVelocityX(0);
       this.setPlatformsVelocity(5);
     }
@@ -83,14 +88,14 @@ export class CanvasManager {
 
   private handleArrowRight(): void {
     this.setPlayerVelocityX(5);
-    if (this.player.x + this.player.width >= 500) {
+    if (this.player!.x + this.player!.width >= 500) {
       this.setPlayerVelocityX(0);
       this.setPlatformsVelocity(-5);
     }
   }
 
   private handleArrowUp(): void {
-    this.player.velocityY = -8;
+    this.player!.velocityY = -8;
   }
 
   public handleKeyUp(event: KeyboardEvent): void {
@@ -104,7 +109,7 @@ export class CanvasManager {
   }
 
   private setPlayerVelocityX(velocity: number): void {
-    this.player.velocityX = velocity;
+    this.player!.velocityX = velocity;
   }
 
   private setPlatformsVelocity(velocity: number): void {
