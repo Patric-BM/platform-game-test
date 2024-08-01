@@ -2,24 +2,30 @@ import { Player } from "./Player";
 import { Platform } from "./Platform";
 
 export class CollisionManager {
-  player: Player;
-  platform: Platform;
-
-  constructor(player: Player, platform: Platform) {
-	this.player = player;
-	this.platform = platform;
+  public checkCollision(player: Player, platform: Platform): void {
+    if (
+      player.y + player.height <= platform.y &&
+      player.y + player.height + player.velocityY >= platform.y &&
+      player.x + player.width >= platform.x &&
+      player.x <= platform.x + platform.width
+    ) {
+      // Collision detected, handle it
+      player.velocityY = 0;
+    }
   }
-
-  public checkCollision(): void {
-	if (
-	  this.player.x < this.platform.x + this.platform.width &&
-	  this.player.x + this.player.width > this.platform.x &&
-	  this.player.y < this.platform.y + this.platform.height &&
-	  this.player.y + this.player.height > this.platform.y
-	) {
-	  // Collision detected, handle it
-	  this.player.velocityY = 0;
-	  this.player.y = this.platform.y - this.player.height;
-	}
+  public checkCollisionWithPlatforms(
+    player: Player,
+    platforms: Platform[]
+  ): void {
+    platforms.forEach((platform) => {
+      if (
+        player.y + player.height <= platform.y &&
+        player.y + player.height + player.velocityY >= platform.y &&
+        player.x + player.width >= platform.x &&
+        player.x <= platform.x + platform.width
+      ) {
+        player.velocityY = 0;
+      }
+    });
   }
 }

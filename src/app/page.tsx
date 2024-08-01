@@ -15,8 +15,8 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-slate-400">
-      <canvas ref={canvasRef} width="800" height="600" />
+    <div className="bg-slate-400 flex items-center justify-center">
+      <canvas className="bg-black" ref={canvasRef} width="800" height="600" />
     </div>
   );
 };

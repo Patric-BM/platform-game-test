@@ -5,19 +5,31 @@ export class Platform {
   height: number;
   color: string;
   context: CanvasRenderingContext2D;
+  velocity: number;
+  image: HTMLImageElement;
 
-  constructor(context: CanvasRenderingContext2D) {
-    this.x = 200;
-    this.y = 300;
-    this.width = 200;
-    this.height = 50;
+  constructor(
+    context: CanvasRenderingContext2D,
+    image: HTMLImageElement,
+    x?: number
+  ) {
+    this.image = image;
+    this.width = this.image.width;
+    this.height = this.image.height ?? 125;
+    this.x = x ?? -1;
+    this.y = context.canvas.height - this.height;
     this.color = "blue";
     this.context = context;
+    this.velocity = 0;
   }
 
-  public draw(): void {
-    this.context.fillStyle = this.color;
-    this.context.fillRect(this.x, this.y, this.width, this.height);
+  private drawImage(): void {
+    this.context.drawImage(this.image, this.x, this.y);
+
   }
 
+  public update(): void {
+    this.drawImage();
+    this.x += this.velocity;
+  }
 }

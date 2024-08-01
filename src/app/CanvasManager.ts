@@ -6,57 +6,110 @@ export class CanvasManager {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   player: Player;
-  platform: Platform;
+  platforms: Platform[];
   collisionManager: CollisionManager;
+  imagePlatform: string = "images/platform.png";
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
+    this.platforms = [];
     this.player = new Player(this.ctx);
-    this.platform = new Platform(this.ctx);
-    this.collisionManager = new CollisionManager(this.player, this.platform);
+    this.collisionManager = new CollisionManager();
   }
 
-  public initialize(): void {
+  public async initialize(): Promise<void> {
+    const image1 = await this.loadImage(this.imagePlatform);
+    const image2 = await this.loadImage(this.imagePlatform);
+    this.platforms = [
+      new Platform(this.ctx, image1),
+      new Platform(this.ctx, image2, image2.width - 10),
+    ];
     this.draw();
-    this.animationFrame();
+    this.loop();
 
-    window.addEventListener("keydown", () => this.handleKeyDown.bind(this));
-    window.addEventListener("keyup", () => this.handleKeyUp.bind(this));
+    window.addEventListener("keydown", (event: KeyboardEvent) =>
+      this.handleKeyDown(event)
+    );
+    window.addEventListener("keyup", (event: KeyboardEvent) =>
+      this.handleKeyUp(event)
+    );
   }
 
-  private animationFrame(): void {
+  private loop(): void {
     this.draw();
-    requestAnimationFrame( () => this.animationFrame() );
+    this.platforms.forEach((platform) => platform.update());
+    this.player.update();
+    this.collisionManager.checkCollisionWithPlatforms(
+      this.player,
+      this.platforms
+    );
+    requestAnimationFrame(() => this.loop());
   }
 
   public draw(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.player.update();
-    this.platform.draw();
-    this.collisionManager.checkCollision();
+  }
+
+  private loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.src = src;
+    });
   }
 
   public handleKeyDown(event: KeyboardEvent): void {
     switch (event.key) {
       case "ArrowLeft":
-        this.player.velocityX = -2;
+        this.handleArrowLeft();
         break;
       case "ArrowRight":
-        this.player.velocityX = 2;
+        this.handleArrowRight();
         break;
       case "ArrowUp":
-        this.player.velocityY = -8;
+        this.handleArrowUp();
         break;
     }
+  }
+
+  private handleArrowLeft(): void {
+    this.setPlayerVelocityX(-5);
+    if (this.player.x <= 100) {
+      this.setPlayerVelocityX(0);
+      this.setPlatformsVelocity(5);
+    }
+  }
+
+  private handleArrowRight(): void {
+    this.setPlayerVelocityX(5);
+    if (this.player.x + this.player.width >= 500) {
+      this.setPlayerVelocityX(0);
+      this.setPlatformsVelocity(-5);
+    }
+  }
+
+  private handleArrowUp(): void {
+    this.player.velocityY = -8;
   }
 
   public handleKeyUp(event: KeyboardEvent): void {
     switch (event.key) {
       case "ArrowLeft":
       case "ArrowRight":
-        this.player.velocityX = 0;
+        this.setPlayerVelocityX(0);
+        this.setPlatformsVelocity(0);
         break;
     }
+  }
+
+  private setPlayerVelocityX(velocity: number): void {
+    this.player.velocityX = velocity;
+  }
+
+  private setPlatformsVelocity(velocity: number): void {
+    this.platforms.forEach((platform) => {
+      platform.velocity = velocity;
+    });
   }
 }

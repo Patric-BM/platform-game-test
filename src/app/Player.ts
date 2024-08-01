@@ -20,17 +20,18 @@ export class Player {
     this.height = 50;
     this.color = "red";
     this.velocityX = 0;
-    this.velocityY = 1;
-    this.gravity = 0.1;
+    this.velocityY = 5;
+    this.gravity = 0.3;
     this.context = context;
   }
 
-  public draw() {
+  public draw(): void {
+   
     this.context.fillStyle = this.color;
     this.context.fillRect(this.x, this.y, this.width, this.height);
   }
 
-  public update() {
+  public update(): void {
     this.draw();
     this.y += this.velocityY;
     this.x += this.velocityX;
