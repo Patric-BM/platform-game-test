@@ -9,7 +9,7 @@ export class CanvasManager {
   platforms: Platform[];
   collisionManager: CollisionManager;
   imagePlatform: string = "images/platform.png";
-  imagePlayer: string = "images/spriteStandRight.png";
+  imagePlayer: string[] = ["images/spriteRunRight.png", "images/spriteStandRight.png"];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -22,8 +22,9 @@ export class CanvasManager {
   public async initialize(): Promise<void> {
     const image1 = await this.loadImage(this.imagePlatform);
     const image2 = await this.loadImage(this.imagePlatform);
-    const image3 = await this.loadImage(this.imagePlayer);
-    this.player = new Player(this.ctx, image3);
+    const imagePlayerStanding = await this.loadImage(this.imagePlayer[1]);
+    const imagePlayerRunning = await this.loadImage(this.imagePlayer[0]);
+    this.player = new Player(this.ctx, imagePlayerRunning, imagePlayerStanding);
     this.platforms = [
       new Platform(this.ctx, image1),
       new Platform(this.ctx, image2, image2.width - 10),
@@ -67,10 +68,12 @@ export class CanvasManager {
       case "ArrowLeft":
         this.handleArrowLeft();
         this.player?.flipImage(true);
+        this.player?.setRunning(true);
         break;
       case "ArrowRight":
         this.handleArrowRight();
         this.player?.flipImage(false);
+        this.player?.setRunning(true);
         break;
       case "ArrowUp":
         this.handleArrowUp();
@@ -104,6 +107,7 @@ export class CanvasManager {
       case "ArrowRight":
         this.setPlayerVelocityX(0);
         this.setPlatformsVelocity(0);
+        this.player?.setRunning(false);
         break;
     }
   }

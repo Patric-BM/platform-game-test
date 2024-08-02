@@ -7,21 +7,30 @@ export class Player {
   public velocityY: number;
   private gravity: number;
   public context: CanvasRenderingContext2D;
-  private image: HTMLImageElement;
+  private imageRunning: HTMLImageElement;
+  private imageStanding: HTMLImageElement;
+  private currentImage: HTMLImageElement;
   private frameIndex: number;
   private frameWidth: number;
   private frameHeight: number;
   private totalFrames: number;
-  private flipped: boolean = false; // Adicione esta linha
+  private flipped: boolean = false;
+  private isRunning: boolean = false;
 
-  constructor(context: CanvasRenderingContext2D, image: HTMLImageElement) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    imageRunning: HTMLImageElement,
+    imageStanding: HTMLImageElement
+  ) {
     this.width = 45;
     this.height = 100;
     this.velocityX = 0;
     this.velocityY = 5;
     this.gravity = 0.3;
     this.context = context;
-    this.image = image;
+    this.imageRunning = imageRunning;
+    this.imageStanding = imageStanding;
+    this.currentImage = imageStanding;
     this.frameIndex = 0;
     this.frameWidth = 177; // 10620 / 60
     this.frameHeight = 400;
@@ -41,7 +50,7 @@ export class Player {
     }
 
     this.context.drawImage(
-      this.image,
+      this.currentImage,
       sx,
       sy,
       this.frameWidth,
@@ -72,4 +81,22 @@ export class Player {
     // Update frame index
     this.frameIndex = (this.frameIndex + 1) % this.totalFrames;
   }
+
+  public setRunning(isRunning: boolean): void {
+    this.isRunning = isRunning;
+    if (isRunning) {
+      this.currentImage = this.imageRunning;
+      this.frameWidth = 341; // 10230 / 30
+      this.totalFrames = 30;
+      this.width = 110;
+    } else {
+      this.currentImage = this.imageStanding;
+      this.frameWidth = 177; // 10620 / 60
+      this.totalFrames = 60;
+        this.width = 45;
+    }
+  }
 }
+
+//running 10230x400 30 frames
+//standing 10620x400 60 frames
