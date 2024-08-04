@@ -10,6 +10,7 @@ export class CanvasManager {
   collisionManager: CollisionManager;
   imagePlatform: string = "images/platform.png";
   imagePlayer: string[] = ["images/spriteRunRight.png", "images/spriteStandRight.png"];
+  gamepadIndex: number | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -17,6 +18,13 @@ export class CanvasManager {
     this.platforms = [];
     this.player = null;
     this.collisionManager = new CollisionManager();
+
+    window.addEventListener("gamepadconnected", (event: GamepadEvent) =>
+      this.onGamepadConnected(event)
+    );
+    window.addEventListener("gamepaddisconnected", (event: GamepadEvent) =>
+      this.onGamepadDisconnected(event)
+    );
   }
 
   public async initialize(): Promise<void> {
@@ -48,6 +56,7 @@ export class CanvasManager {
       this.player!,
       this.platforms
     );
+    this.updateGamepad();
     requestAnimationFrame(() => this.loop());
   }
 
@@ -120,5 +129,45 @@ export class CanvasManager {
     this.platforms.forEach((platform) => {
       platform.velocity = velocity;
     });
+  }
+
+  private onGamepadConnected(event: GamepadEvent): void {
+    this.gamepadIndex = event.gamepad.index;
+    console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+      event.gamepad.index, event.gamepad.id,
+      event.gamepad.buttons.length, event.gamepad.axes.length);
+  }
+
+  private onGamepadDisconnected(event: GamepadEvent): void {
+    console.log("Gamepad disconnected at index %d: %s. %d buttons, %d axes.",
+      event.gamepad.index, event.gamepad.id,
+      event.gamepad.buttons.length, event.gamepad.axes.length);
+  }
+
+  private updateGamepad(): void {
+    if (this.gamepadIndex === null) return;
+    const gamepad = navigator.getGamepads()[this.gamepadIndex];
+    if (!gamepad) return;
+    
+    const leftStickX = gamepad.axes[0];
+    const leftStickY = gamepad.axes[1];
+
+    if (leftStickX < -0.1) {
+      this.handleArrowLeft();
+      this.player?.flipImage(true);
+      this.player?.setRunning(true);
+    } else if (leftStickX > 0.5) {
+      this.handleArrowRight();
+      this.player?.flipImage(false);
+      this.player?.setRunning(true);
+    } else {
+      this.setPlayerVelocityX(0);
+      this.setPlatformsVelocity(0);
+      this.player?.setRunning(false);
+    }
+
+    if (leftStickY < -0.5) {
+      this.handleArrowUp();
+    }
   }
 }
